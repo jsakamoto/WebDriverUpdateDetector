@@ -1,5 +1,7 @@
 #r "System.Xml.Linq"
+#load "..\Shared\AzureTableStorage.csx"
 #load "..\Shared\WebDriverVersion.csx"
+#load "..\Shared\SendMail.csx"
 using System;
 using System.Net;
 using System.Net.Http;
@@ -8,25 +10,40 @@ using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.Azure; // Namespace for CloudConfigurationManager
-using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
-using Microsoft.WindowsAzure.Storage.Table; // Namespace for Table storage types
+using Microsoft.WindowsAzure.Storage.Table;
 
 public static async Task Run(TimerInfo myTimer, TraceWriter log)
 {
     log.Info($"C# Timer trigger function started at: {DateTime.Now}");
+    
+    try
+    {
+        await RunCore(log);
+    }
+    catch (Exception exception)
+    {
+        try {
+            SendMail(
+                "[WebDriver Update] Unhandled Exception occured in ChromeDriver update detector",
+                exception.ToString());
+        }
+        catch {}
+        throw;
+    }
 
+    log.Info($"C# Timer trigger function finished at: {DateTime.Now}");    
+}
+
+public static async Task RunCore(TraceWriter log)
+{
     // Connect Azure Table Storage.
-    var connStr = ConfigurationManager.AppSettings["StorageConnectionString"];
-    var storageAccount = CloudStorageAccount.Parse(connStr);
-    var tableClient = storageAccount.CreateCloudTableClient();
-    var table = tableClient.GetTableReference("WevDriverVersions");
-    await table.CreateIfNotExistsAsync();
+    var table = await ConnectAzureTableStorage();
 
     // Retrieve record about ChromeDriver version which last checked.
     var result = await table.ExecuteAsync(TableOperation.Retrieve<WebDriverVersion>("", "ChromeDriver"));
-    var verInfo = result.Result as WebDriverVersion;
-    log.Info($"Stored version is {verInfo.LatestVersion}");    
+    var verInfo = result.Result as WebDriverVersion ?? new WebDriverVersion("ChromeDriver") { LatestVersion = "0.0.0" };
+    var storedVersion = verInfo.LatestVersion;
+    log.Info($"Stored version is {storedVersion}");
 
     // Retrieve latest version information via release site.
     var latestVersion = default(string);
@@ -51,31 +68,18 @@ public static async Task Run(TimerInfo myTimer, TraceWriter log)
     }
 
     // Check the driver was updated or not.    
-    if (verInfo.LatestVersion != latestVersion) {
-        
-        // Update the record in Azure Storage Table.
+    if (storedVersion != latestVersion) {
         log.Info($"Detect new version.");
+        
+        // Notify by e-mail.
+        SendMail(
+            "[WebDriver Update] Detect newer version of ChromeDriver",
+            $"Stored version is {storedVersion}\n"+
+            $"Latest version is {latestVersion}\n"+ 
+            $"See: {url}index.html");
+
+        // Update the record in Azure Storage Table.
         verInfo.LatestVersion = latestVersion;
         await table.ExecuteAsync(TableOperation.InsertOrReplace(verInfo));
-
-        // Notify by e-mail.
-        var smtpClient = new SmtpClient{
-            Host = ConfigurationManager.AppSettings["Smtp.Host"],
-            Port = int.Parse(ConfigurationManager.AppSettings["Smtp.Port"]),
-            Credentials = new NetworkCredential(
-                ConfigurationManager.AppSettings["Smtp.UserName"],
-                ConfigurationManager.AppSettings["Smtp.Password"]
-            )
-        };
-        var mailFrom = ConfigurationManager.AppSettings["NotifyMail.From"];
-        var mailTo = ConfigurationManager.AppSettings["NotifyMail.To"];
-        smtpClient.Send(
-            mailFrom, 
-            mailTo,
-            "[WebDriver Update] Detect newer version of ChromeDriver", 
-            $"See: {url}index.html");
-        smtpClient.Dispose();
     }
-
-    log.Info($"C# Timer trigger function finished at: {DateTime.Now}");    
 }
