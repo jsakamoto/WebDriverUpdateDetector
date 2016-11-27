@@ -1,0 +1,10 @@
+{
+    "frameworks": {
+        "net46": {
+            "dependencies": {
+                "System.Net.Http": "4.0.0",
+                "WindowsAzure.Storage": "7.2.1"
+            }
+        }
+    }
+}
