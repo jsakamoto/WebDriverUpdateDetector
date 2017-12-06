@@ -19,4 +19,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="cd /d &quot;$(ProjectDir)&quot;&#xD;&#xA;if not exist local.settings.json copy .defaults\local.settings.json ." />
+  </Target>
 </Project>
