@@ -4,4 +4,4 @@ obj/
 *.suo
 *.user
 *.pubxml
-local.settings.json
+*.arm.json

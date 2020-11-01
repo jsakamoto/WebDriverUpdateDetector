@@ -1,20 +1,19 @@
-﻿using System;
-using Microsoft.WindowsAzure.Storage.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 
 namespace WebDriverUpdateDetector
 {
     internal class WebDriverVersion : TableEntity
     {
-        public string LatestVersion { get; set; } = "";
-
         public WebDriverVersion()
         {
         }
 
-        public WebDriverVersion(string name)
+        public WebDriverVersion(string driver, string version)
         {
-            this.PartitionKey = "";
-            this.RowKey = name;
+            PartitionKey = driver;
+            RowKey = version;
         }
+
+        public override string ToString() => $"{PartitionKey}, v.{RowKey}";
     }
 }

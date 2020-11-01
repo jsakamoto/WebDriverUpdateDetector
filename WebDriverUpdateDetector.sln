@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30626.31
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDriverUpdateDetector", "WebDriverUpdateDetector.csproj", "{8EF13C11-6440-462D-8A0D-811E4CC203ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDriverUpdateDetector", "WebDriverUpdateDetector.csproj", "{03C90166-1E81-49BE-9680-ED69EAEB2F32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8EF13C11-6440-462D-8A0D-811E4CC203ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EF13C11-6440-462D-8A0D-811E4CC203ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EF13C11-6440-462D-8A0D-811E4CC203ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EF13C11-6440-462D-8A0D-811E4CC203ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03C90166-1E81-49BE-9680-ED69EAEB2F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03C90166-1E81-49BE-9680-ED69EAEB2F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03C90166-1E81-49BE-9680-ED69EAEB2F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03C90166-1E81-49BE-9680-ED69EAEB2F32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F856C7F8-532B-4E0C-940B-318AF97B4642}
+		SolutionGuid = {F6B38C88-12B1-42CF-9484-EECBCCBF3527}
 	EndGlobalSection
 EndGlobal

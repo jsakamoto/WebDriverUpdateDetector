@@ -1,20 +1,16 @@
-﻿using System;
-using System.Configuration;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Microsoft.Extensions.Configuration;
 
 namespace WebDriverUpdateDetector
 {
-    internal static class AzureTableStorage
+    internal class AzureTableStorage
     {
-        public static async Task<CloudTable> ConnectAsync()
+        public static CloudTable Connect(IConfiguration configuration)
         {
-            var connStr = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            var storageAccount = CloudStorageAccount.Parse(connStr);
+            var storageAccount = CloudStorageAccount.Parse(configuration["AzureWebJobsStorage"]);
             var tableClient = storageAccount.CreateCloudTableClient();
-            var table = tableClient.GetTableReference("WevDriverVersions");
-            await table.CreateIfNotExistsAsync();
+            var table = tableClient.GetTableReference("WebDriverVersions");
+            table.CreateIfNotExists();
             return table;
         }
     }

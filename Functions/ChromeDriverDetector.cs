@@ -1,94 +1,82 @@
 using System;
 using System.Linq;
-using System.Configuration;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using Microsoft.WindowsAzure.Storage.Table;
-using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace WebDriverUpdateDetector
 {
     public static class ChromeDriverDetector
     {
+        private const string ChromeDiverStorageUrl = "https://chromedriver.storage.googleapis.com/";
+
         [FunctionName("ChromeDriverDetector")]
-        public static async Task Run([TimerTrigger("0 0 0,12 * * *")]TimerInfo myTimer, TraceWriter log)
+        public static void Run([TimerTrigger("0 0 0,12 * * *")] TimerInfo myTimer, ILogger log)
         {
-            log.Info($"C# Timer trigger function started at: {DateTime.Now}");
+            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            var configuration = Configuration.GetConfiguration();
 
             try
             {
-                await RunCore(log);
+                RunCore(configuration, log);
             }
             catch (Exception exception)
             {
                 try
                 {
-                    Mail.Send(
-                        "[WebDriver Update v2] Unhandled Exception occured in ChromeDriver update detector",
+                    Mail.Send(configuration,
+                        "[WebDriver Update v3] Unhandled Exception occured in ChromeDriver update detector",
                         exception.ToString());
                 }
                 catch { }
                 throw;
             }
 
-            log.Info($"C# Timer trigger function finished at: {DateTime.Now}");
+            log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
         }
 
-        public static async Task RunCore(TraceWriter log)
+        private static void RunCore(IConfiguration configuration, ILogger log)
         {
-            // Connect Azure Table Storage.
-            var table = await AzureTableStorage.ConnectAsync();
+            var driverVersions = GetChromeDriverVersionns();
 
-            // Retrieve record about ChromeDriver version which last checked.
-            var result = await table.ExecuteAsync(TableOperation.Retrieve<WebDriverVersion>("", "ChromeDriver"));
-            var verInfo = result.Result as WebDriverVersion ?? new WebDriverVersion("ChromeDriver") { LatestVersion = "0.0.0" };
-            var storedVersion = verInfo.LatestVersion;
-            log.Info($"Stored version is {storedVersion}");
+            var table = AzureTableStorage.Connect(configuration);
+            var knownVersions = table.CreateQuery<WebDriverVersion>()
+                .Where(row => row.PartitionKey == "ChromeDriver")
+                .Select(row => row.RowKey)
+                .ToHashSet();
 
-            // Retrieve latest version information via release site.
-            var latestVersion = default(string);
-            var url = "https://chromedriver.storage.googleapis.com/";
-            var httpClient = new HttpClient();
-            using (var responseStream = await httpClient.GetStreamAsync(url))
+            var newVersions = driverVersions
+                .Where(ver => !knownVersions.Contains(ver))
+                .ToArray();
+
+            if (newVersions.Any())
             {
-                var xdoc = XDocument.Load(responseStream);
-                var xmlns = "http://doc.s3.amazonaws.com/2006-03-01";
-                var versions = from contentSrc in xdoc.Descendants(XName.Get("Contents", xmlns))
-                               let content = new
-                               {
-                                   Key = contentSrc.Element(XName.Get("Key", xmlns)).Value,
-                                   LastModified = DateTime.Parse(contentSrc.Element(XName.Get("LastModified", xmlns)).Value)
-                               }
-                               let match = Regex.Match(content.Key, @"^(?<ver>[^/]+)/chromedriver_win32.zip$", RegexOptions.IgnoreCase)
-                               where match.Success
-                               orderby content.LastModified descending
-                               select match.Groups["ver"].Value;
-                latestVersion = versions.FirstOrDefault();
-                log.Info($"Latest version is {latestVersion}");
+                Mail.Send(configuration,
+                    "[WebDriver Update v3] Detect newer version of ChromeDriver",
+                    $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
+                    $"\n" +
+                    $"See: {ChromeDiverStorageUrl}index.html");
             }
 
-            // Check the driver was updated or not.    
-            if (storedVersion != latestVersion)
+            foreach (var newVersion in newVersions)
             {
-                log.Info($"Detect new version.");
-
-                // Notify by e-mail.
-                Mail.Send(
-                    "[WebDriver Update v2] Detect newer version of ChromeDriver",
-                    $"Stored version is {storedVersion}\n" +
-                    $"Latest version is {latestVersion}\n" +
-                    $"See: {url}index.html");
-
-                // Update the record in Azure Storage Table.
-                verInfo.LatestVersion = latestVersion;
-                await table.ExecuteAsync(TableOperation.InsertOrReplace(verInfo));
+                var operation = TableOperation.InsertOrReplace(new WebDriverVersion(driver: "ChromeDriver", newVersion));
+                table.Execute(operation);
             }
+        }
 
-
-            log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
+        private static string[] GetChromeDriverVersionns()
+        {
+            var xdoc = XDocument.Load(ChromeDiverStorageUrl);
+            var xmlns = "http://doc.s3.amazonaws.com/2006-03-01";
+            var driverVersions = xdoc.Descendants(XName.Get("Key", xmlns))
+                .Select(xe => xe.Value.ToLower())
+                .Where(val => val.EndsWith("/chromedriver_win32.zip"))
+                .Select(val => val.Split('/')[0])
+                .ToArray();
+            return driverVersions;
         }
     }
 }
