@@ -5,13 +5,11 @@ Param(
 
 DynamicParam {
 
-    $sdkOutFile = Get-ChildItem functionsSdk.out -Recurse | Sort-Object -Property LastWriteTimeUtc -Descending | Select-Object -First 1
-    if ($sdkOutFile -eq $null) {
-        Write-Host "Couldn't find `"functionsSdk.out`" file." -ForegroundColor Yellow
-        exit
-    }
-    $funcNames = Get-Content $sdkOutFile | ForEach-Object { $_ -replace "\\function.json", ""} | Sort-Object
-    
+    $funcNames = Get-ChildItem "function.json" -Recurse | 
+    Split-Path -Parent | 
+    Split-Path -Leaf |
+    Sort-Object | Get-Unique
+   
     $attributes = New-Object System.Management.Automation.ParameterAttribute
     $attributesCollection = New-Object 'Collections.ObjectModel.Collection[System.Attribute]'
     $attributesCollection.Add($attributes)
@@ -34,7 +32,7 @@ Begin {
 
         $url = "http://localhost:$Port/admin/functions/$funcName"
         Write-Host "HTTP POST $url" -ForegroundColor Gray
-        Invoke-RestMethod -Method Post -Uri $url -Body "{}"
+        Invoke-RestMethod -Method Post -Uri $url -Body "{}" -ContentType "application/json"
 
         Write-Host "done." -ForegroundColor Yellow
         Write-Host ""
