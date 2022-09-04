@@ -1,19 +1,27 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Azure;
+using Azure.Data.Tables;
 
-namespace WebDriverUpdateDetector
+namespace WebDriverUpdateDetector;
+
+internal class WebDriverVersion : ITableEntity
 {
-    internal class WebDriverVersion : TableEntity
+    public string PartitionKey { get; set; } = "";
+
+    public string RowKey { get; set; } = "";
+
+    public DateTimeOffset? Timestamp { get; set; }
+
+    public ETag ETag { get; set; }
+
+    public WebDriverVersion()
     {
-        public WebDriverVersion()
-        {
-        }
-
-        public WebDriverVersion(string driver, string version)
-        {
-            PartitionKey = driver;
-            RowKey = version;
-        }
-
-        public override string ToString() => $"{PartitionKey}, v.{RowKey}";
     }
+
+    public WebDriverVersion(string driver, string version)
+    {
+        this.PartitionKey = driver;
+        this.RowKey = version;
+    }
+
+    public override string ToString() => $"{this.PartitionKey}, v.{this.RowKey}";
 }

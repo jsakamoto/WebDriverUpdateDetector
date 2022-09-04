@@ -1,17 +1,15 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 
-namespace WebDriverUpdateDetector
+namespace WebDriverUpdateDetector;
+
+internal class AzureTableStorage
 {
-    internal class AzureTableStorage
+    public static TableClient Connect(IConfiguration configuration)
     {
-        public static CloudTable Connect(IConfiguration configuration)
-        {
-            var storageAccount = CloudStorageAccount.Parse(configuration["AzureWebJobsStorage"]);
-            var tableClient = storageAccount.CreateCloudTableClient();
-            var table = tableClient.GetTableReference("WebDriverVersions");
-            table.CreateIfNotExists();
-            return table;
-        }
+        var tableServiceClient = new TableServiceClient(configuration["AzureWebJobsStorage"]);
+        var tableClient = tableServiceClient.GetTableClient(tableName: "WebDriverVersions");
+        tableClient.CreateIfNotExists();
+        return tableClient;
     }
 }
