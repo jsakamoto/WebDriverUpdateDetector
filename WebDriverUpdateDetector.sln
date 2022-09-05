@@ -7,10 +7,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDriverUpdateDetector", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A0947B0A-D8EC-4841-BBCB-783FF651010A}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\gh-pages.yml = .github\workflows\gh-pages.yml
 		Invoke-LocalAzFunc.ps1 = Invoke-LocalAzFunc.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDriverUpdateDetector.Test", "WebDriverUpdateDetector.Test\WebDriverUpdateDetector.Test.csproj", "{D3957A4D-4AAD-4C20-BAFB-B88CD9BE2E30}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "README", "README", "{EBB5E20C-C03C-4F78-A7E0-9732C2D6F0E9}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
