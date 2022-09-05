@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -8,17 +7,19 @@ namespace WebDriverUpdateDetector;
 
 public static class IEDriverDetector
 {
-    private const string IEDiverStorageUrl = "https://selenium-release.storage.googleapis.com/";
+    private const string IEDriverChangeLogUrl = "https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/cpp/iedriverserver/CHANGELOG";
+
+    private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
     [FunctionName("IEDriverDetector")]
-    public static void Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
+    public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
     {
         log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
         {
-            RunCore(configuration, log);
+            await RunCoreAsync(configuration, log);
         }
         catch (Exception exception)
         {
@@ -35,9 +36,9 @@ public static class IEDriverDetector
         log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private static void RunCore(IConfiguration configuration, ILogger log)
+    private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
-        var driverVersions = GetIEDriverVersionns();
+        var driverVersions = await GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
 
         var table = AzureTableStorage.Connect(configuration);
         var knownVersions = table.Query<WebDriverVersion>()
@@ -55,23 +56,22 @@ public static class IEDriverDetector
                 "[WebDriver Update v4] Detect newer version of IEDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +
-                $"See: {IEDiverStorageUrl}index.html");
+                $"See: {SeleniumReleasePageUrl}index.html");
         }
 
         foreach (var newVersion in newVersions)
         {
-            table.AddEntity(new WebDriverVersion(driver: "IEDriver", newVersion));
+            await table.AddEntityAsync(new WebDriverVersion(driver: "IEDriver", newVersion));
         }
     }
 
-    private static string[] GetIEDriverVersionns()
+    internal static async ValueTask<string[]> GetIEDriverVersionsAsync(string ieDriverChangeLogUrl)
     {
-        var xdoc = XDocument.Load(IEDiverStorageUrl);
-        var xmlns = "http://doc.s3.amazonaws.com/2006-03-01";
-        var driverVersions = xdoc.Descendants(XName.Get("Key", xmlns))
-            .Select(xe => xe.Value.ToLower())
-            .Where(val => Regex.IsMatch(val, @"/iedriverserver_win32_.+\.zip$"))
-            .Select(val => val.Split('/')[0])
+        using var httpClient = new HttpClient();
+        var changeLog = await httpClient.GetStringAsync(ieDriverChangeLogUrl);
+
+        var driverVersions = Regex.Matches(changeLog, @"^v(?<number>[\d\.]+)\r?$", RegexOptions.Multiline)
+            .Select(m => m.Groups["number"].Value)
             .ToArray();
         return driverVersions;
     }
