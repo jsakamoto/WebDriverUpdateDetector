@@ -25,8 +25,8 @@ public static class IEDriverDetector
         {
             try
             {
-                Mail.Send(configuration,
-                    "[WebDriver Update v4] Unhandled Exception occured in IEDriver update detector",
+                await Mail.SendAsync(configuration,
+                    "Unhandled Exception occured in IEDriver update detector",
                     exception.ToString());
             }
             catch { }
@@ -52,8 +52,8 @@ public static class IEDriverDetector
 
         if (newVersions.Any())
         {
-            Mail.Send(configuration,
-                "[WebDriver Update v4] Detect newer version of IEDriver",
+            await Mail.SendAsync(configuration,
+                "Detect newer version of IEDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +
                 $"See: {SeleniumReleasePageUrl}index.html");

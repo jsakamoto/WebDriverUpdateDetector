@@ -10,21 +10,21 @@ public static class ChromeDriverDetector
     private const string ChromeDiverStorageUrl = "https://chromedriver.storage.googleapis.com/";
 
     [FunctionName("ChromeDriverDetector")]
-    public static void Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
+    public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
     {
         log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
         {
-            RunCore(configuration, log);
+            await RunCoreAsync(configuration, log);
         }
         catch (Exception exception)
         {
             try
             {
-                Mail.Send(configuration,
-                    "[WebDriver Update v4] Unhandled Exception occured in ChromeDriver update detector",
+                await Mail.SendAsync(configuration,
+                    "Unhandled Exception occured in ChromeDriver update detector",
                     exception.ToString());
             }
             catch { }
@@ -34,7 +34,7 @@ public static class ChromeDriverDetector
         log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private static void RunCore(IConfiguration configuration, ILogger log)
+    private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
         var driverVersions = GetChromeDriverVersionns();
 
@@ -50,8 +50,8 @@ public static class ChromeDriverDetector
 
         if (newVersions.Any())
         {
-            Mail.Send(configuration,
-                "[WebDriver Update v4] Detect newer version of ChromeDriver",
+            await Mail.SendAsync(configuration,
+                "Detect newer version of ChromeDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +
                 $"See: {ChromeDiverStorageUrl}index.html");
