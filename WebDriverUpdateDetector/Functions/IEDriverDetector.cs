@@ -11,7 +11,7 @@ public static class IEDriverDetector
 
     private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
-    [FunctionName("IEDriverDetector")]
+    [FunctionName(nameof(IEDriverDetector))]
     public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
     {
         log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");

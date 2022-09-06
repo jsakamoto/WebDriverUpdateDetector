@@ -9,7 +9,7 @@ public static class ChromeDriverDetector
 {
     private const string ChromeDiverStorageUrl = "https://chromedriver.storage.googleapis.com/";
 
-    [FunctionName("ChromeDriverDetector")]
+    [FunctionName(nameof(ChromeDriverDetector))]
     public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
     {
         log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
