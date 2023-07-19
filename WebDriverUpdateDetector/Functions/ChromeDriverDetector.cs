@@ -1,18 +1,20 @@
-using System.Xml.Linq;
+using System.Net.Http.Json;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using WebDriverUpdateDetector.Internal;
 
 namespace WebDriverUpdateDetector;
 
 public static class ChromeDriverDetector
 {
-    private const string ChromeDiverStorageUrl = "https://chromedriver.storage.googleapis.com/";
+    private const string ChromeDiverVersionUrl = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
 
     [FunctionName(nameof(ChromeDriverDetector))]
     public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
     {
-        log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        var version = typeof(ChromeDriverDetector).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+        log.LogInformation($"ChromeDriverDetector {version} executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
@@ -31,12 +33,12 @@ public static class ChromeDriverDetector
             throw;
         }
 
-        log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
+        log.LogInformation($"ChromeDriverDetector {version} finished at: {DateTime.Now}");
     }
 
     private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
-        var driverVersions = GetChromeDriverVersionns();
+        var driverVersions = await GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
 
         var table = AzureTableStorage.Connect(configuration);
         var knownVersions = table.Query<WebDriverVersion>()
@@ -54,7 +56,7 @@ public static class ChromeDriverDetector
                 "Detect newer version of ChromeDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +
-                $"See: {ChromeDiverStorageUrl}index.html");
+                $"See: {ChromeDiverVersionUrl}");
         }
 
         foreach (var newVersion in newVersions)
@@ -63,15 +65,11 @@ public static class ChromeDriverDetector
         }
     }
 
-    private static string[] GetChromeDriverVersionns()
+    internal static async ValueTask<IEnumerable<string>> GetChromeDriverVersionsAsync(string chromeDiverVersionUrl)
     {
-        var xdoc = XDocument.Load(ChromeDiverStorageUrl);
-        var xmlns = "http://doc.s3.amazonaws.com/2006-03-01";
-        var driverVersions = xdoc.Descendants(XName.Get("Key", xmlns))
-            .Select(xe => xe.Value.ToLower())
-            .Where(val => val.EndsWith("/chromedriver_win32.zip"))
-            .Select(val => val.Split('/')[0])
-            .ToArray();
-        return driverVersions;
+        using var httpClient = new HttpClient();
+        var versionInfo = await httpClient.GetFromJsonAsync<ChromeDriverVersionInfo>(chromeDiverVersionUrl);
+        if (versionInfo == null) throw new InvalidOperationException("Failed to get ChromeDriver version info.");
+        return new[] { versionInfo.Channels.Stable.Version, versionInfo.Channels.Beta.Version }.Distinct();
     }
 }

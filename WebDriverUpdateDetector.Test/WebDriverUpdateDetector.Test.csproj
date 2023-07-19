@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebDriverUpdateDetector\WebDriverUpdateDetector.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>
 
 </Project>
