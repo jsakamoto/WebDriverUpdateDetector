@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace WebDriverUpdateDetector;
@@ -11,17 +10,17 @@ public class IEDriverDetector
 
     private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
+    private readonly AzureTableStorage _storage;
+
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    private readonly IConfiguration _configuration;
-
-    public IEDriverDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
+    public IEDriverDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<IEDriverDetector>();
-        this._configuration = configuration;
     }
 
     [Function(nameof(IEDriverDetector))]
@@ -31,7 +30,7 @@ public class IEDriverDetector
 
         try
         {
-            await this.RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync();
         }
         catch (Exception exception)
         {
@@ -46,11 +45,11 @@ public class IEDriverDetector
         this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync()
     {
         var driverVersions = await GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
 
-        var table = AzureTableStorage.Connect(configuration);
+        var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
             .Where(row => row.PartitionKey == "IEDriver")
             .Select(row => row.RowKey)

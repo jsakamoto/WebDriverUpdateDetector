@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WebDriverUpdateDetector.Internal;
 
@@ -10,17 +9,17 @@ public class ChromeDriverDetector
 {
     private const string ChromeDiverVersionUrl = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
 
+    private readonly AzureTableStorage _storage;
+
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    private readonly IConfiguration _configuration;
-
-    public ChromeDriverDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
+    public ChromeDriverDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeDriverDetector>();
-        this._configuration = configuration;
     }
 
     [Function(nameof(ChromeDriverDetector))]
@@ -31,7 +30,7 @@ public class ChromeDriverDetector
 
         try
         {
-            await this.RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync();
         }
         catch (Exception exception)
         {
@@ -48,11 +47,11 @@ public class ChromeDriverDetector
         this._logger.LogInformation($"ChromeDriverDetector {version} finished at: {DateTime.Now}");
     }
 
-    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync()
     {
         var driverVersions = await GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
 
-        var table = AzureTableStorage.Connect(configuration);
+        var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
             .Where(row => row.PartitionKey == "ChromeDriver")
             .Select(row => row.RowKey)

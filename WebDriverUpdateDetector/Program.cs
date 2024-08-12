@@ -17,6 +17,7 @@ var host = new HostBuilder()
         services.AddOptions<SmtpConfig>().BindConfiguration("Smtp");
         services.AddOptions<NotifyMailConfig>().BindConfiguration("NotifyMail");
         services.AddTransient<Mail>();
+        services.AddTransient<AzureTableStorage>();
     })
     .Build();
 

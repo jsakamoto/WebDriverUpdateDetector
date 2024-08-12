@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace WebDriverUpdateDetector;
@@ -9,17 +8,17 @@ public class ChromeBrowserDetector
 {
     private const string ChromeBrowserPackageUrl = "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages";
 
+    private readonly AzureTableStorage _storage;
+
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    private readonly IConfiguration _configuration;
-
-    public ChromeBrowserDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
+    public ChromeBrowserDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeBrowserDetector>();
-        this._configuration = configuration;
     }
 
     [Function(nameof(ChromeBrowserDetector))]
@@ -29,7 +28,7 @@ public class ChromeBrowserDetector
 
         try
         {
-            await this.RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync();
         }
         catch (Exception exception)
         {
@@ -47,13 +46,13 @@ public class ChromeBrowserDetector
         this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync()
     {
         using var httpClient = new HttpClient();
         using var stream = await httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
         var browserVersions = await GetChromeBrowserVersionsAsync(stream);
 
-        var table = AzureTableStorage.Connect(configuration);
+        var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
             .Where(row => row.PartitionKey == "ChromeBrowser")
             .Select(row => row.RowKey)

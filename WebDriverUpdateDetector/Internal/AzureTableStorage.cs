@@ -3,11 +3,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace WebDriverUpdateDetector;
 
-internal class AzureTableStorage
+public class AzureTableStorage
 {
-    public static TableClient Connect(IConfiguration configuration)
+    private readonly IConfiguration _configuration;
+
+    public AzureTableStorage(IConfiguration configuration)
     {
-        var tableServiceClient = new TableServiceClient(configuration["AzureWebJobsStorage"]);
+        this._configuration = configuration;
+    }
+
+    public TableClient GetTableClient()
+    {
+        var tableServiceClient = new TableServiceClient(this._configuration["AzureWebJobsStorage"]);
         var tableClient = tableServiceClient.GetTableClient(tableName: "WebDriverVersions");
         tableClient.CreateIfNotExists();
         return tableClient;
