@@ -9,14 +9,17 @@ public class ChromeDriverDetector
 {
     private const string ChromeDiverVersionUrl = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
 
+    private readonly HttpClient _httpClient;
+
     private readonly AzureTableStorage _storage;
 
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    public ChromeDriverDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
+    public ChromeDriverDetector(HttpClient httpClient, AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._httpClient = httpClient;
         this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeDriverDetector>();
@@ -49,7 +52,7 @@ public class ChromeDriverDetector
 
     private async ValueTask RunCoreAsync()
     {
-        var driverVersions = await GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
+        var driverVersions = await this.GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
 
         var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
@@ -76,10 +79,9 @@ public class ChromeDriverDetector
         }
     }
 
-    internal static async ValueTask<IEnumerable<string>> GetChromeDriverVersionsAsync(string chromeDiverVersionUrl)
+    internal async ValueTask<IEnumerable<string>> GetChromeDriverVersionsAsync(string chromeDiverVersionUrl)
     {
-        using var httpClient = new HttpClient();
-        var versionInfo = await httpClient.GetFromJsonAsync<ChromeDriverVersionInfo>(chromeDiverVersionUrl);
+        var versionInfo = await this._httpClient.GetFromJsonAsync<ChromeDriverVersionInfo>(chromeDiverVersionUrl);
         if (versionInfo == null) throw new InvalidOperationException("Failed to get ChromeDriver version info.");
         return new[] { versionInfo.Channels.Stable.Version, versionInfo.Channels.Beta.Version }.Distinct();
     }

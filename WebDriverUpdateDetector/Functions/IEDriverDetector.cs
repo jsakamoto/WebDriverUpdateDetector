@@ -10,14 +10,17 @@ public class IEDriverDetector
 
     private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
+    private readonly HttpClient _httpClient;
+
     private readonly AzureTableStorage _storage;
 
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    public IEDriverDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
+    public IEDriverDetector(HttpClient httpClient, AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._httpClient = httpClient;
         this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<IEDriverDetector>();
@@ -49,7 +52,7 @@ public class IEDriverDetector
 
     private async ValueTask RunCoreAsync()
     {
-        var driverVersions = await GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
+        var driverVersions = await this.GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
 
         var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
@@ -76,10 +79,9 @@ public class IEDriverDetector
         }
     }
 
-    internal static async ValueTask<string[]> GetIEDriverVersionsAsync(string ieDriverChangeLogUrl)
+    internal async ValueTask<string[]> GetIEDriverVersionsAsync(string ieDriverChangeLogUrl)
     {
-        using var httpClient = new HttpClient();
-        var changeLog = await httpClient.GetStringAsync(ieDriverChangeLogUrl);
+        var changeLog = await this._httpClient.GetStringAsync(ieDriverChangeLogUrl);
 
         var driverVersions = Regex.Matches(changeLog, @"^v(?<number>[\d\.]+)\r?$", RegexOptions.Multiline)
             .Select(m => m.Groups["number"].Value)

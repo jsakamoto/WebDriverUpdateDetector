@@ -8,14 +8,17 @@ public class ChromeBrowserDetector
 {
     private const string ChromeBrowserPackageUrl = "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages";
 
+    private readonly HttpClient _httpClient;
+
     private readonly AzureTableStorage _storage;
 
     private readonly Mail _mail;
 
     private readonly ILogger _logger;
 
-    public ChromeBrowserDetector(AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
+    public ChromeBrowserDetector(HttpClient httpClient, AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
     {
+        this._httpClient = httpClient;
         this._storage = storage;
         this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeBrowserDetector>();
@@ -48,8 +51,7 @@ public class ChromeBrowserDetector
 
     private async ValueTask RunCoreAsync()
     {
-        using var httpClient = new HttpClient();
-        using var stream = await httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
+        using var stream = await this._httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
         var browserVersions = await GetChromeBrowserVersionsAsync(stream);
 
         var table = this._storage.GetTableClient();
@@ -82,7 +84,7 @@ public class ChromeBrowserDetector
         EndOfReading
     }
 
-    internal static async ValueTask<IEnumerable<string>> GetChromeBrowserVersionsAsync(Stream stream)
+    internal async ValueTask<IEnumerable<string>> GetChromeBrowserVersionsAsync(Stream stream)
     {
         using var reader = new StreamReader(stream, leaveOpen: true);
 

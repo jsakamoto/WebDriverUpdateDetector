@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using WebDriverUpdateDetector.Test.Fixtures;
+
 namespace WebDriverUpdateDetector.Test;
 
 public class IEDriverDetectorTest
@@ -6,7 +9,11 @@ public class IEDriverDetectorTest
     public async Task GetIEDriverVersionns_Test()
     {
         const string ieDriverChangeLogUrl = "https://raw.githubusercontent.com/SeleniumHQ/selenium/ef15a22dc01a6c02135163d065898e233c5979e5/cpp/IEDriverServer/CHANGELOG";
-        var driverVersions = await IEDriverDetector.GetIEDriverVersionsAsync(ieDriverChangeLogUrl);
+
+        using var testHost = TestHost.CreateHost();
+        var detector = testHost.Services.GetRequiredService<IEDriverDetector>();
+
+        var driverVersions = await detector.GetIEDriverVersionsAsync(ieDriverChangeLogUrl);
         driverVersions.Is(
             "2.26.1.0",
             "2.26.0.9",
