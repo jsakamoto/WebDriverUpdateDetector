@@ -30,7 +30,7 @@ public class Mail
         {
             From = { new MailboxAddress(notifyMailConfig.From, notifyMailConfig.From) },
             To = { new MailboxAddress(notifyMailConfig.To, notifyMailConfig.To) },
-            Subject = $"[WebDriver Update v{version}] {subject}",
+            Subject = $"{subject} | WebDriver Update Detactor v{version}]",
             Body = new TextPart { Text = body }
         });
         await smtpClient.DisconnectAsync(quit: true);

@@ -36,7 +36,9 @@ public class IEDriverDetector
         {
             try
             {
-                await this._mail.SendAsync("Unhandled Exception occured in IEDriver update detector", exception.ToString());
+                await this._mail.SendAsync(
+                    subject: "Unhandled Exception occured in IEDriver update detector",
+                    body: exception.ToString());
             }
             catch { }
             throw;
@@ -62,10 +64,10 @@ public class IEDriverDetector
         if (newVersions.Any())
         {
             await this._mail.SendAsync(
-                "Detect newer version of IEDriver",
-                $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
-                $"\n" +
-                $"See: {SeleniumReleasePageUrl}index.html");
+                subject: "[Chrome IEDriver] Newer versions are detected",
+                body: $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
+                      $"\n" +
+                      $"See: {SeleniumReleasePageUrl}index.html");
         }
 
         foreach (var newVersion in newVersions)

@@ -37,8 +37,8 @@ public class ChromeDriverDetector
             try
             {
                 await this._mail.SendAsync(
-                    "Unhandled Exception occured in ChromeDriver update detector",
-                    exception.ToString());
+                    subject: "Unhandled Exception occured in ChromeDriver update detector",
+                    body: exception.ToString());
             }
             catch { }
             throw;
@@ -64,10 +64,10 @@ public class ChromeDriverDetector
         if (newVersions.Any())
         {
             await this._mail.SendAsync(
-                "Detect newer version of ChromeDriver",
-                $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
-                $"\n" +
-                $"See: {ChromeDiverVersionUrl}");
+                subject: "[Chrome Driver] Newer versions are detected",
+                body: $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
+                      $"\n" +
+                      $"See: {ChromeDiverVersionUrl}");
         }
 
         foreach (var newVersion in newVersions)

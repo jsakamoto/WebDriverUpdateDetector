@@ -36,8 +36,8 @@ public class ChromeBrowserDetector
             try
             {
                 await this._mail.SendAsync(
-                    "Unhandled Exception occured in Chrome Browser update detector",
-                    exception.ToString());
+                    subject: "Unhandled Exception occured in Chrome Browser update detector",
+                    body: exception.ToString());
             }
             catch { }
             throw;
@@ -65,8 +65,8 @@ public class ChromeBrowserDetector
         if (newVersions.Any())
         {
             await this._mail.SendAsync(
-                "Detect newer version of Chrome Browser",
-                $"Detected new versions are: {string.Join(", ", newVersions)}\n");
+                subject: "[Chrome Browser] Newer versions are detected",
+                body: $"Detected new versions are: {string.Join(", ", newVersions)}\n");
         }
 
         foreach (var newVersion in newVersions)
