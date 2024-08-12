@@ -1,26 +1,34 @@
-using System.Text.RegularExpressions;
-using Microsoft.Azure.WebJobs;
+﻿using System.Text.RegularExpressions;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace WebDriverUpdateDetector;
 
-public static class ChromeBrowserDetector
+public class ChromeBrowserDetector
 {
     private const string ChromeBrowserPackageUrl = "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages";
 
-    [FunctionName(nameof(ChromeBrowserDetector))]
-    public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
+    private readonly ILogger _logger;
+
+    public ChromeBrowserDetector(ILoggerFactory loggerFactory)
     {
-        log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        this._logger = loggerFactory.CreateLogger<ChromeBrowserDetector>();
+    }
+
+    [Function(nameof(ChromeBrowserDetector))]
+    public async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer)
+    {
+        this._logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, log);
+            await RunCoreAsync(configuration, this._logger);
         }
         catch (Exception exception)
         {
+            this._logger.LogError(exception, exception.Message);
             try
             {
                 await Mail.SendAsync(configuration,
@@ -31,7 +39,7 @@ public static class ChromeBrowserDetector
             throw;
         }
 
-        log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
+        this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
     private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)

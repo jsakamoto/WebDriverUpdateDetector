@@ -1,25 +1,32 @@
 using System.Net.Http.Json;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WebDriverUpdateDetector.Internal;
 
 namespace WebDriverUpdateDetector;
 
-public static class ChromeDriverDetector
+public class ChromeDriverDetector
 {
     private const string ChromeDiverVersionUrl = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
 
-    [FunctionName(nameof(ChromeDriverDetector))]
-    public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
+    private readonly ILogger _logger;
+
+    public ChromeDriverDetector(ILoggerFactory loggerFactory)
+    {
+        this._logger = loggerFactory.CreateLogger<ChromeDriverDetector>();
+    }
+
+    [Function(nameof(ChromeDriverDetector))]
+    public async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer)
     {
         var version = typeof(ChromeDriverDetector).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
-        log.LogInformation($"ChromeDriverDetector {version} executed at: {DateTime.Now}");
+        this._logger.LogInformation($"ChromeDriverDetector {version} executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, log);
+            await RunCoreAsync(configuration, this._logger);
         }
         catch (Exception exception)
         {
@@ -33,7 +40,7 @@ public static class ChromeDriverDetector
             throw;
         }
 
-        log.LogInformation($"ChromeDriverDetector {version} finished at: {DateTime.Now}");
+        this._logger.LogInformation($"ChromeDriverDetector {version} finished at: {DateTime.Now}");
     }
 
     private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)

@@ -1,25 +1,32 @@
 using System.Text.RegularExpressions;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace WebDriverUpdateDetector;
 
-public static class IEDriverDetector
+public class IEDriverDetector
 {
     private const string IEDriverChangeLogUrl = "https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/cpp/iedriverserver/CHANGELOG";
 
     private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
-    [FunctionName(nameof(IEDriverDetector))]
-    public static async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer, ILogger log)
+    private readonly ILogger _logger;
+
+    public IEDriverDetector(ILoggerFactory loggerFactory)
     {
-        log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+        this._logger = loggerFactory.CreateLogger<IEDriverDetector>();
+    }
+
+    [Function(nameof(IEDriverDetector))]
+    public async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer)
+    {
+        this._logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, log);
+            await RunCoreAsync(configuration, this._logger);
         }
         catch (Exception exception)
         {
@@ -33,7 +40,7 @@ public static class IEDriverDetector
             throw;
         }
 
-        log.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
+        this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
     private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
