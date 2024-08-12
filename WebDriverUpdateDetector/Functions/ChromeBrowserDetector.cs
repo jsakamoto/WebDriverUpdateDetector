@@ -10,28 +10,30 @@ public class ChromeBrowserDetector
     private const string ChromeBrowserPackageUrl = "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages";
 
     private readonly ILogger _logger;
+    
+    private readonly IConfiguration _configuration;
 
-    public ChromeBrowserDetector(ILoggerFactory loggerFactory)
+    public ChromeBrowserDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
         this._logger = loggerFactory.CreateLogger<ChromeBrowserDetector>();
+        this._configuration = configuration;
     }
 
     [Function(nameof(ChromeBrowserDetector))]
     public async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer)
     {
         this._logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-        var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, this._logger);
+            await RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             this._logger.LogError(exception, exception.Message);
             try
             {
-                await Mail.SendAsync(configuration,
+                await Mail.SendAsync(this._configuration,
                     "Unhandled Exception occured in Chrome Browser update detector",
                     exception.ToString());
             }

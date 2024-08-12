@@ -12,9 +12,12 @@ public class ChromeDriverDetector
 
     private readonly ILogger _logger;
 
-    public ChromeDriverDetector(ILoggerFactory loggerFactory)
+    private readonly IConfiguration _configuration;
+
+    public ChromeDriverDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
         this._logger = loggerFactory.CreateLogger<ChromeDriverDetector>();
+        this._configuration = configuration;
     }
 
     [Function(nameof(ChromeDriverDetector))]
@@ -22,17 +25,16 @@ public class ChromeDriverDetector
     {
         var version = typeof(ChromeDriverDetector).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
         this._logger.LogInformation($"ChromeDriverDetector {version} executed at: {DateTime.Now}");
-        var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, this._logger);
+            await RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             try
             {
-                await Mail.SendAsync(configuration,
+                await Mail.SendAsync(this._configuration,
                     "Unhandled Exception occured in ChromeDriver update detector",
                     exception.ToString());
             }

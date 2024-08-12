@@ -13,26 +13,28 @@ public class IEDriverDetector
 
     private readonly ILogger _logger;
 
-    public IEDriverDetector(ILoggerFactory loggerFactory)
+    private readonly IConfiguration _configuration;
+
+    public IEDriverDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
         this._logger = loggerFactory.CreateLogger<IEDriverDetector>();
+        this._configuration = configuration;
     }
 
     [Function(nameof(IEDriverDetector))]
     public async Task Run([TimerTrigger("0 0 10,22 * * *")] TimerInfo myTimer)
     {
         this._logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-        var configuration = Configuration.GetConfiguration();
 
         try
         {
-            await RunCoreAsync(configuration, this._logger);
+            await RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             try
             {
-                await Mail.SendAsync(configuration,
+                await Mail.SendAsync(this._configuration,
                     "Unhandled Exception occured in IEDriver update detector",
                     exception.ToString());
             }

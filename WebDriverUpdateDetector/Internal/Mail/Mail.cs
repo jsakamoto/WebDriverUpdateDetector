@@ -1,6 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using WebDriverUpdateDetector.Internal;
 
 namespace WebDriverUpdateDetector;
 
