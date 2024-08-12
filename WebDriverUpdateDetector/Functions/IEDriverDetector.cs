@@ -11,12 +11,15 @@ public class IEDriverDetector
 
     private const string SeleniumReleasePageUrl = "https://github.com/SeleniumHQ/selenium/releases";
 
+    private readonly Mail _mail;
+
     private readonly ILogger _logger;
 
     private readonly IConfiguration _configuration;
 
-    public IEDriverDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public IEDriverDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
     {
+        this._mail = mail;
         this._logger = loggerFactory.CreateLogger<IEDriverDetector>();
         this._configuration = configuration;
     }
@@ -28,15 +31,13 @@ public class IEDriverDetector
 
         try
         {
-            await RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             try
             {
-                await Mail.SendAsync(this._configuration,
-                    "Unhandled Exception occured in IEDriver update detector",
-                    exception.ToString());
+                await this._mail.SendAsync("Unhandled Exception occured in IEDriver update detector", exception.ToString());
             }
             catch { }
             throw;
@@ -45,7 +46,7 @@ public class IEDriverDetector
         this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
         var driverVersions = await GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
 
@@ -61,7 +62,7 @@ public class IEDriverDetector
 
         if (newVersions.Any())
         {
-            await Mail.SendAsync(configuration,
+            await this._mail.SendAsync(
                 "Detect newer version of IEDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +

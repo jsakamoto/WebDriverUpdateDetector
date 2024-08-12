@@ -1,18 +1,27 @@
 ﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MimeKit;
-using WebDriverUpdateDetector.Internal;
 
 namespace WebDriverUpdateDetector;
 
-internal static class Mail
+public class Mail
 {
-    public static async ValueTask SendAsync(IConfiguration configuration, string subject, string body)
+    private readonly IOptionsMonitor<SmtpConfig> _smtpOptions;
+
+    private readonly IOptionsMonitor<NotifyMailConfig> _notifyMailOptions;
+
+    public Mail(IOptionsMonitor<SmtpConfig> smtpOptions, IOptionsMonitor<NotifyMailConfig> notifyMailOptions)
+    {
+        this._smtpOptions = smtpOptions;
+        this._notifyMailOptions = notifyMailOptions;
+    }
+
+    public async ValueTask SendAsync(string subject, string body)
     {
         var version = typeof(Mail).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 
-        var smtpConfig = configuration.GetSection<SmtpConfig>("Smtp");
-        var notifyMailConfig = configuration.GetSection<NotifyMailConfig>("NotifyMail");
+        var smtpConfig = this._smtpOptions.CurrentValue;
+        var notifyMailConfig = this._notifyMailOptions.CurrentValue;
 
         using var smtpClient = new SmtpClient();
         await smtpClient.ConnectAsync(smtpConfig.Host, smtpConfig.Port, smtpConfig.UseSSL);

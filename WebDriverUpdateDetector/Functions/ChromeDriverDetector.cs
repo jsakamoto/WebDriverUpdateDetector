@@ -10,12 +10,15 @@ public class ChromeDriverDetector
 {
     private const string ChromeDiverVersionUrl = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
 
+    private readonly Mail _mail;
+
     private readonly ILogger _logger;
 
     private readonly IConfiguration _configuration;
 
-    public ChromeDriverDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public ChromeDriverDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
     {
+        this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeDriverDetector>();
         this._configuration = configuration;
     }
@@ -28,13 +31,13 @@ public class ChromeDriverDetector
 
         try
         {
-            await RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             try
             {
-                await Mail.SendAsync(this._configuration,
+                await this._mail.SendAsync(
                     "Unhandled Exception occured in ChromeDriver update detector",
                     exception.ToString());
             }
@@ -45,7 +48,7 @@ public class ChromeDriverDetector
         this._logger.LogInformation($"ChromeDriverDetector {version} finished at: {DateTime.Now}");
     }
 
-    private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
         var driverVersions = await GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
 
@@ -61,7 +64,7 @@ public class ChromeDriverDetector
 
         if (newVersions.Any())
         {
-            await Mail.SendAsync(configuration,
+            await this._mail.SendAsync(
                 "Detect newer version of ChromeDriver",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                 $"\n" +

@@ -9,12 +9,15 @@ public class ChromeBrowserDetector
 {
     private const string ChromeBrowserPackageUrl = "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages";
 
+    private readonly Mail _mail;
+
     private readonly ILogger _logger;
-    
+
     private readonly IConfiguration _configuration;
 
-    public ChromeBrowserDetector(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public ChromeBrowserDetector(Mail mail, ILoggerFactory loggerFactory, IConfiguration configuration)
     {
+        this._mail = mail;
         this._logger = loggerFactory.CreateLogger<ChromeBrowserDetector>();
         this._configuration = configuration;
     }
@@ -26,14 +29,14 @@ public class ChromeBrowserDetector
 
         try
         {
-            await RunCoreAsync(this._configuration, this._logger);
+            await this.RunCoreAsync(this._configuration, this._logger);
         }
         catch (Exception exception)
         {
             this._logger.LogError(exception, exception.Message);
             try
             {
-                await Mail.SendAsync(this._configuration,
+                await this._mail.SendAsync(
                     "Unhandled Exception occured in Chrome Browser update detector",
                     exception.ToString());
             }
@@ -44,7 +47,7 @@ public class ChromeBrowserDetector
         this._logger.LogInformation($"C# Timer trigger function finished at: {DateTime.Now}");
     }
 
-    private static async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
+    private async ValueTask RunCoreAsync(IConfiguration configuration, ILogger log)
     {
         using var httpClient = new HttpClient();
         using var stream = await httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
@@ -62,7 +65,7 @@ public class ChromeBrowserDetector
 
         if (newVersions.Any())
         {
-            await Mail.SendAsync(configuration,
+            await this._mail.SendAsync(
                 "Detect newer version of Chrome Browser",
                 $"Detected new versions are: {string.Join(", ", newVersions)}\n");
         }
