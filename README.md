@@ -1,4 +1,4 @@
-# Selenium WebDriver Update Detector [![unit tests](https://github.com/jsakamoto/WebDriverUpdateDetector/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/jsakamoto/WebDriverUpdateDetector/actions/workflows/gh-pages.yml)
+# Selenium WebDriver Update Detector [![unit tests](https://github.com/jsakamoto/WebDriverUpdateDetector/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/jsakamoto/WebDriverUpdateDetector/actions/workflows/unit-tests.yml)
 
 Azure Functions App by C#
 
