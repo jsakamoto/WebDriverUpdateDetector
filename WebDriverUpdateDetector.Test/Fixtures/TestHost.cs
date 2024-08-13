@@ -2,6 +2,9 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WebDriverUpdateDetector.Functions;
+using WebDriverUpdateDetector.Internal;
+using WebDriverUpdateDetector.Internal.Mail;
 using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector.Test.Fixtures;

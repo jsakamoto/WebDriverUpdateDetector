@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace WebDriverUpdateDetector;
+namespace WebDriverUpdateDetector.Internal;
 
 internal class WebDriverVersion : ITableEntity
 {

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using WebDriverUpdateDetector.Services;
 
-namespace WebDriverUpdateDetector;
+namespace WebDriverUpdateDetector.Internal;
 
 internal class AzureTableStorage : IAzureTableStorage
 {

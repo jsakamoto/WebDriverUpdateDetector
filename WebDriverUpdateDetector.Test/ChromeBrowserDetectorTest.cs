@@ -1,4 +1,6 @@
-﻿namespace WebDriverUpdateDetector.Test;
+﻿using WebDriverUpdateDetector.Functions;
+
+namespace WebDriverUpdateDetector.Test;
 
 public class ChromeBrowserDetectorTest
 {

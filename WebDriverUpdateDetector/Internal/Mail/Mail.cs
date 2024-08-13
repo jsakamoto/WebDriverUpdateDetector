@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using WebDriverUpdateDetector.Services;
 
-namespace WebDriverUpdateDetector;
+namespace WebDriverUpdateDetector.Internal.Mail;
 
 internal class Mail : IMail
 {

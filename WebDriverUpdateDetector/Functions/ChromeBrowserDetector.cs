@@ -1,9 +1,10 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using WebDriverUpdateDetector.Internal;
 using WebDriverUpdateDetector.Services;
 
-namespace WebDriverUpdateDetector;
+namespace WebDriverUpdateDetector.Functions;
 
 public class ChromeBrowserDetector
 {

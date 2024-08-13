@@ -1,3 +1,5 @@
+using WebDriverUpdateDetector.Functions;
+
 namespace WebDriverUpdateDetector.Test;
 
 public class IEDriverDetectorTest

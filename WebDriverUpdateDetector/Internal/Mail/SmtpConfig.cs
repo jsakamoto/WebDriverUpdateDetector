@@ -1,4 +1,4 @@
-﻿namespace WebDriverUpdateDetector;
+﻿namespace WebDriverUpdateDetector.Internal.Mail;
 
 internal class SmtpConfig
 {
