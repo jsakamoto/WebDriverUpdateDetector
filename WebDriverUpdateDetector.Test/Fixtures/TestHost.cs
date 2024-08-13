@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector.Test.Fixtures;
 
@@ -25,8 +25,8 @@ internal class TestHost
             services.AddTransient(_ => new HttpClient(new HttpMockMessageHandler(responseList)));
             services.AddOptions<SmtpConfig>().BindConfiguration("Smtp");
             services.AddOptions<NotifyMailConfig>().BindConfiguration("NotifyMail");
-            services.AddTransient<Mail>();
-            services.AddTransient<AzureTableStorage>();
+            services.AddTransient<IMail, Mail>();
+            services.AddTransient<IAzureTableStorage, AzureTableStorage>();
             services.AddTransient<ILoggerFactory, NullLoggerFactory>();
             services.AddTransient<ChromeBrowserDetector>();
             services.AddTransient<ChromeDriverDetector>();

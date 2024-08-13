@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebDriverUpdateDetector;
+using WebDriverUpdateDetector.Services;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -16,8 +17,8 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
         services.AddOptions<SmtpConfig>().BindConfiguration("Smtp");
         services.AddOptions<NotifyMailConfig>().BindConfiguration("NotifyMail");
-        services.AddTransient<Mail>();
-        services.AddTransient<AzureTableStorage>();
+        services.AddTransient<IMail, Mail>();
+        services.AddTransient<IAzureTableStorage, AzureTableStorage>();
         services.AddTransient<HttpClient>();
     })
     .Build();

@@ -1,9 +1,10 @@
 ﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
+using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector;
 
-public class AzureTableStorage
+internal class AzureTableStorage : IAzureTableStorage
 {
     private readonly IConfiguration _configuration;
 

@@ -1,10 +1,11 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector;
 
-public class Mail
+internal class Mail : IMail
 {
     private readonly IOptionsMonitor<SmtpConfig> _smtpOptions;
 

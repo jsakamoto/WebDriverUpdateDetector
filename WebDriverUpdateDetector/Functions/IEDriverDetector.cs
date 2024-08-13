@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector;
 
@@ -12,13 +13,13 @@ public class IEDriverDetector
 
     private readonly HttpClient _httpClient;
 
-    private readonly AzureTableStorage _storage;
+    private readonly IAzureTableStorage _storage;
 
-    private readonly Mail _mail;
+    private readonly IMail _mail;
 
     private readonly ILogger _logger;
 
-    public IEDriverDetector(HttpClient httpClient, AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
+    public IEDriverDetector(HttpClient httpClient, IAzureTableStorage storage, IMail mail, ILoggerFactory loggerFactory)
     {
         this._httpClient = httpClient;
         this._storage = storage;

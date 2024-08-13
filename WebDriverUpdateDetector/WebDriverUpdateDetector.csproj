@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="WebDriverUpdateDetector.Test" />
-    <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext"/>
+    <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
 
   <ItemGroup>

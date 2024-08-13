@@ -1,6 +1,6 @@
 ﻿namespace WebDriverUpdateDetector;
 
-public class SmtpConfig
+internal class SmtpConfig
 {
     public string? Host { get; set; }
     public int Port { get; set; }

@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using WebDriverUpdateDetector.Internal;
+using WebDriverUpdateDetector.Services;
 
 namespace WebDriverUpdateDetector;
 
@@ -11,13 +12,13 @@ public class ChromeDriverDetector
 
     private readonly HttpClient _httpClient;
 
-    private readonly AzureTableStorage _storage;
+    private readonly IAzureTableStorage _storage;
 
-    private readonly Mail _mail;
+    private readonly IMail _mail;
 
     private readonly ILogger _logger;
 
-    public ChromeDriverDetector(HttpClient httpClient, AzureTableStorage storage, Mail mail, ILoggerFactory loggerFactory)
+    public ChromeDriverDetector(HttpClient httpClient, IAzureTableStorage storage, IMail mail, ILoggerFactory loggerFactory)
     {
         this._httpClient = httpClient;
         this._storage = storage;
