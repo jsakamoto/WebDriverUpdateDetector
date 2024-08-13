@@ -31,7 +31,7 @@ internal class Mail : IMail
         {
             From = { new MailboxAddress(notifyMailConfig.From, notifyMailConfig.From) },
             To = { new MailboxAddress(notifyMailConfig.To, notifyMailConfig.To) },
-            Subject = $"{subject} | WebDriver Update Detactor v{version}]",
+            Subject = $"{subject} | WebDriver Update Detactor v{version}",
             Body = new TextPart { Text = body }
         });
         await smtpClient.DisconnectAsync(quit: true);
