@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using WebDriverUpdateDetector.Test.Fixtures;
-
-namespace WebDriverUpdateDetector.Test;
+﻿namespace WebDriverUpdateDetector.Test;
 
 internal class ChromeDriverDetectorTest
 {
@@ -12,18 +7,14 @@ internal class ChromeDriverDetectorTest
     public async Task GetChromeDriverVersionsAsync_Test(string versionIfoFileName, string[] expectedVersions)
     {
         // Given
-        using var testHost = TestHost.CreateHost();
+        using var testHost = TestHost.CreateHost([(
+            Url: "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
+            ContentPath: versionIfoFileName
+        )]);
         var detector = testHost.Services.GetRequiredService<ChromeDriverDetector>();
 
-        var baseUrl = $"http://localhost:{TestHelper.GetAvailableIPv4Port()}";
-        await using var app = WebApplication.CreateBuilder().Build();
-        app.Map("/last-known-good-versions.json", () => Results.Content(File.ReadAllText(TestHelper.GetFixturePath(versionIfoFileName)), contentType: "application/json"));
-        app.Urls.Add(baseUrl);
-        await app.StartAsync();
-
         // When
-        var chromeDiverVersionUrl = baseUrl + "/last-known-good-versions.json";
-        var versions = await detector.GetChromeDriverVersionsAsync(chromeDiverVersionUrl);
+        var versions = await detector.GetChromeDriverVersionsAsync();
 
         // Then: It returns the stable and beta versions of ChromeDriver.
         versions.Is(expectedVersions);

@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="NUnit.Framework" />
+    <Using Include="WebDriverUpdateDetector.Test.Fixtures" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ChainingAssertion-NUnit.Bin" Version="4.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="NUnit" Version="4.1.0" />
@@ -26,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="NUnit.Framework" />
     <ProjectReference Include="..\WebDriverUpdateDetector\WebDriverUpdateDetector.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>

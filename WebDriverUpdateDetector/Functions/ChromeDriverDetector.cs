@@ -37,6 +37,7 @@ public class ChromeDriverDetector
         }
         catch (Exception exception)
         {
+            this._logger.LogError(exception, exception.Message);
             try
             {
                 await this._mail.SendAsync(
@@ -52,7 +53,7 @@ public class ChromeDriverDetector
 
     private async ValueTask RunCoreAsync()
     {
-        var driverVersions = await this.GetChromeDriverVersionsAsync(ChromeDiverVersionUrl);
+        var driverVersions = await this.GetChromeDriverVersionsAsync();
 
         var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
@@ -79,9 +80,9 @@ public class ChromeDriverDetector
         }
     }
 
-    internal async ValueTask<IEnumerable<string>> GetChromeDriverVersionsAsync(string chromeDiverVersionUrl)
+    internal async ValueTask<IEnumerable<string>> GetChromeDriverVersionsAsync()
     {
-        var versionInfo = await this._httpClient.GetFromJsonAsync<ChromeDriverVersionInfo>(chromeDiverVersionUrl);
+        var versionInfo = await this._httpClient.GetFromJsonAsync<ChromeDriverVersionInfo>(ChromeDiverVersionUrl);
         if (versionInfo == null) throw new InvalidOperationException("Failed to get ChromeDriver version info.");
         return new[] { versionInfo.Channels.Stable.Version, versionInfo.Channels.Beta.Version }.Distinct();
     }

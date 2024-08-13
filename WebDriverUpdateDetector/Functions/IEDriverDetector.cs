@@ -37,6 +37,7 @@ public class IEDriverDetector
         }
         catch (Exception exception)
         {
+            this._logger.LogError(exception, exception.Message);
             try
             {
                 await this._mail.SendAsync(
@@ -52,7 +53,7 @@ public class IEDriverDetector
 
     private async ValueTask RunCoreAsync()
     {
-        var driverVersions = await this.GetIEDriverVersionsAsync(IEDriverChangeLogUrl);
+        var driverVersions = await this.GetIEDriverVersionsAsync();
 
         var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
@@ -70,7 +71,7 @@ public class IEDriverDetector
                 subject: "[Chrome IEDriver] Newer versions are detected",
                 body: $"Detected new versions are: {string.Join(", ", newVersions)}\n" +
                       $"\n" +
-                      $"See: {SeleniumReleasePageUrl}index.html");
+                      $"See: {SeleniumReleasePageUrl}/index.html");
         }
 
         foreach (var newVersion in newVersions)
@@ -79,9 +80,9 @@ public class IEDriverDetector
         }
     }
 
-    internal async ValueTask<string[]> GetIEDriverVersionsAsync(string ieDriverChangeLogUrl)
+    internal async ValueTask<string[]> GetIEDriverVersionsAsync()
     {
-        var changeLog = await this._httpClient.GetStringAsync(ieDriverChangeLogUrl);
+        var changeLog = await this._httpClient.GetStringAsync(IEDriverChangeLogUrl);
 
         var driverVersions = Regex.Matches(changeLog, @"^v(?<number>[\d\.]+)\r?$", RegexOptions.Multiline)
             .Select(m => m.Groups["number"].Value)

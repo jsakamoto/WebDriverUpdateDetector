@@ -51,8 +51,7 @@ public class ChromeBrowserDetector
 
     private async ValueTask RunCoreAsync()
     {
-        using var stream = await this._httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
-        var browserVersions = await GetChromeBrowserVersionsAsync(stream);
+        var browserVersions = await this.GetChromeBrowserVersionsAsync();
 
         var table = this._storage.GetTableClient();
         var knownVersions = table.Query<WebDriverVersion>()
@@ -84,8 +83,9 @@ public class ChromeBrowserDetector
         EndOfReading
     }
 
-    internal async ValueTask<IEnumerable<string>> GetChromeBrowserVersionsAsync(Stream stream)
+    internal async ValueTask<IEnumerable<string>> GetChromeBrowserVersionsAsync()
     {
+        using var stream = await this._httpClient.GetStreamAsync(ChromeBrowserPackageUrl);
         using var reader = new StreamReader(stream, leaveOpen: true);
 
         var browserVersions = new List<string>();
